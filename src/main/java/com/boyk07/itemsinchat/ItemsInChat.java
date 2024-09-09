@@ -6,17 +6,17 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.HoverEvent;
-import net.fabricmc.fabric.api.event.network.ServerMessageEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 
 public class ItemsInChat implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // Register chat event listener using ServerMessageEvents
-        ServerMessageEvents.CHAT_MESSAGE.register(this::onChatMessage);
+        // Register event to capture chat messages from players
+        ServerPlayConnectionEvents.JOIN.register(this::onChatMessage);
     }
 
-    private void onChatMessage(ServerPlayerEntity player, Text message, net.fabricmc.fabric.api.networking.v1.MessageType type, boolean bl) {
+    private void onChatMessage(ServerPlayerEntity player, Text message, boolean bl) {
         String msgString = message.getString();
 
         // Check if the player wants to display their item, armor, offhand, or ender chest
