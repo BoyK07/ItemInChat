@@ -10,9 +10,8 @@ public class ItemsInChat implements ModInitializer {
         ChatListener.registerChatListener();
     }
 
-    // Returns true if the message was modified
-    public static boolean handleChatMessage(String chatMessage, ServerPlayerEntity sender) {
-        boolean modified = ItemDisplayHandler.handleItemDisplay(chatMessage, sender);
-        return modified;
+    // Handles the message modification
+    public static String handleChatMessage(String chatMessage, ServerPlayerEntity sender) {
+        return ItemDisplayHandler.handleItemDisplay(chatMessage, sender);
     }
 }

@@ -1,16 +1,15 @@
 package com.boyk07.itemsinchat;
 
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Text;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Formatting;
 
 public class ItemDisplayHandler {
 
-    // Returns true if the message was modified
-    public static boolean handleItemDisplay(String chatText, ServerPlayerEntity player) {
+    public static String handleItemDisplay(String chatText, ServerPlayerEntity player) {
         // Check if the message contains [item] or [i]
         if (chatText.contains("[item]") || chatText.contains("[i]")) {
             ItemStack heldItem = player.getStackInHand(Hand.MAIN_HAND);
@@ -23,22 +22,20 @@ public class ItemDisplayHandler {
 
                 // Handle stack size
                 if (heldItem.getCount() > 1) {
-                    itemText = Text.literal(heldItem.getName().getString() + " x" + heldItem.getCount())
+                    itemText = Text.literal("§d" + heldItem.getName().getString() + " x" + heldItem.getCount() + "§f")
+                            .styled(style -> style.withHoverEvent(hoverEvent));
+                } else {
+                    itemText = Text.literal("§d" + heldItem.getName().getString() + " x1" + "§f")
                             .styled(style -> style.withHoverEvent(hoverEvent));
                 }
 
                 // Replace [item] or [i] in the message with the hoverable item text
-                String replacedMessage = chatText.replace("[item]", itemText.getString()).replace("[i]", itemText.getString());
+                String replacedMessageContent = chatText.replace("[item]", itemText.getString()).replace("[i]", itemText.getString());
 
-                // Broadcast the modified message to all players on the server
-                MinecraftServer server = player.getServer();
-                if (server != null) {
-                    server.getPlayerManager().broadcast(Text.literal(replacedMessage), false);
-                }
-
-                return true; // Message was modified
+                // Return the modified message to the event handler
+                return replacedMessageContent;
             }
         }
-        return false; // No modification was made
+        return chatText; // Return the original if no modification
     }
 }
