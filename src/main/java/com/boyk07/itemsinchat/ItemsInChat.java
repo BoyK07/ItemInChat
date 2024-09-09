@@ -6,51 +6,49 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.HoverEvent;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.nbt.NbtList;
+import net.fabricmc.fabric.api.networking.v1.ServerMessageEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
 
 public class ItemsInChat implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // Register event to capture chat messages from players
-        ServerPlayConnectionEvents.JOIN.register(this::onChatMessage);
+        // Capture chat events using ServerMessageEvents
+        ServerMessageEvents.CHAT_MESSAGE.register((message, sender, type) -> {
+            String msgString = message.getString();
+            ServerPlayerEntity player = sender;
+
+            // Check for placeholders in the message
+            if (msgString.contains("[item]") || msgString.contains("[i]") || 
+                msgString.contains("[armor]") || msgString.contains("[a]") || 
+                msgString.contains("[offhand]") || msgString.contains("[o]") ||
+                msgString.contains("[enderchest]") || msgString.contains("[ec]")) {
+                
+                // Handle item, armor, offhand, or enderchest display
+                if (msgString.contains("[item]") || msgString.contains("[i]")) {
+                    msgString = handleItem(player, msgString);
+                }
+
+                if (msgString.contains("[armor]") || msgString.contains("[a]")) {
+                    msgString = handleArmor(player, msgString);
+                }
+
+                if (msgString.contains("[offhand]") || msgString.contains("[o]")) {
+                    msgString = handleOffhand(player, msgString);
+                }
+
+                if (msgString.contains("[enderchest]") || msgString.contains("[ec]")) {
+                    msgString = handleEnderChest(player, msgString);
+                }
+
+                // Broadcast the updated message
+                player.getServer().getPlayerManager().broadcast(Text.literal(msgString), false);
+            }
+        });
     }
 
-    private void onChatMessage(ServerPlayerEntity player, Text message, boolean bl) {
-        String msgString = message.getString();
-
-        // Check if the player wants to display their item, armor, offhand, or ender chest
-        if (msgString.contains("[item]") || msgString.contains("[i]") || 
-            msgString.contains("[armor]") || msgString.contains("[a]") || 
-            msgString.contains("[offhand]") || msgString.contains("[o]") ||
-            msgString.contains("[enderchest]") || msgString.contains("[ec]")) {
-            
-            // Handle [item] or [i]
-            if (msgString.contains("[item]") || msgString.contains("[i]")) {
-                msgString = handleItem(player, msgString);
-            }
-
-            // Handle [armor] or [a]
-            if (msgString.contains("[armor]") || msgString.contains("[a]")) {
-                msgString = handleArmor(player, msgString);
-            }
-
-            // Handle [offhand] or [o]
-            if (msgString.contains("[offhand]") || msgString.contains("[o]")) {
-                msgString = handleOffhand(player, msgString);
-            }
-
-            // Handle [enderchest] or [ec]
-            if (msgString.contains("[enderchest]") || msgString.contains("[ec]")) {
-                msgString = handleEnderChest(player, msgString);
-            }
-
-            // Send the updated message
-            player.server.getPlayerManager().broadcastChatMessage(Text.literal(msgString), false);
-        }
-    }
-
-    // Function to handle [item] or [i]
     private String handleItem(ServerPlayerEntity player, String message) {
         ItemStack heldItem = player.getMainHandStack();
         if (!heldItem.isEmpty()) {
@@ -60,7 +58,6 @@ public class ItemsInChat implements ModInitializer {
         return message;
     }
 
-    // Function to handle [armor] or [a]
     private String handleArmor(ServerPlayerEntity player, String message) {
         StringBuilder armorText = new StringBuilder();
         ItemStack[] armorPieces = {
@@ -80,7 +77,6 @@ public class ItemsInChat implements ModInitializer {
         return message;
     }
 
-    // Function to handle [offhand] or [o]
     private String handleOffhand(ServerPlayerEntity player, String message) {
         ItemStack offhandItem = player.getOffHandStack();
         if (!offhandItem.isEmpty()) {
@@ -90,7 +86,6 @@ public class ItemsInChat implements ModInitializer {
         return message;
     }
 
-    // Function to handle [enderchest] or [ec]
     private String handleEnderChest(ServerPlayerEntity player, String message) {
         StringBuilder enderChestText = new StringBuilder();
         for (int i = 0; i < player.getEnderChestInventory().size(); i++) {
@@ -103,17 +98,15 @@ public class ItemsInChat implements ModInitializer {
         return message;
     }
 
-    // Helper function to create hoverable text with item details
     private Text createHoverText(ItemStack itemStack) {
         Text hoverText = Text.literal("Item: " + itemStack.getName().getString())
-                .append("\nAmount: " + itemStack.getCount())
-                .formatted(Formatting.GREEN);
+                .append(Text.literal("\nAmount: " + itemStack.getCount()).formatted(Formatting.GREEN));
 
-        // Add enchantments to hover text if available
         if (itemStack.hasEnchantments()) {
-            hoverText = hoverText.append("\nEnchantments: ").formatted(Formatting.GOLD);
-            itemStack.getEnchantments().forEach(enchantment -> {
-                hoverText = hoverText.append("\n - " + enchantment.asString());
+            hoverText = hoverText.append(Text.literal("\nEnchantments: ").formatted(Formatting.GOLD));
+            NbtList enchantments = itemStack.getEnchantments();
+            enchantments.forEach(enchantment -> {
+                hoverText = hoverText.append(Text.literal("\n - " + enchantment.toString()));
             });
         }
 
