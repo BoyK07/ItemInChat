@@ -1,0 +1,18 @@
+{
+	"schemaVersion": 1,
+	"id": "itemsinchat",
+	"version": "1.0.0",
+	"name": "ItemsInChat",
+	"description": "A mod that allows players to display the item they're holding in chat",
+	"authors": ["BoyK07"],
+	"entrypoints": {
+	  "main": [
+		"com.boyk07.itemsinchat.ItemsInChat"
+	  ]
+	},
+	"depends": {
+	  "fabricloader": ">=0.14.0",
+	  "minecraft": "1.21.1"
+	}
+  }
+  
