@@ -10,7 +10,6 @@ public class ItemDisplayHandler {
 
     // Function to handle [item] or [i] placeholders
     public static String handleItemDisplay(String chatText, ServerPlayerEntity player) {
-        // Check if the message contains [item] or [i]
         ItemStack heldItem = player.getStackInHand(Hand.MAIN_HAND);
 
         if (!heldItem.isEmpty()) {
@@ -19,22 +18,19 @@ public class ItemDisplayHandler {
 
             itemText = itemText.copy().styled(style -> style.withHoverEvent(hoverEvent));
 
-            // Handle stack size
             if (heldItem.getCount() > 1) {
                 itemText = Text.literal("§d" + heldItem.getName().getString() + " x" + heldItem.getCount() + "§f")
                         .styled(style -> style.withHoverEvent(hoverEvent));
             } else {
-                itemText = Text.literal("§d" + heldItem.getName().getString() + " x1" + "§f")
+                itemText = Text.literal("§d" + heldItem.getName().getString() + "§f")
                         .styled(style -> style.withHoverEvent(hoverEvent));
             }
 
-            // Replace [item] or [i] in the message with the hoverable item text
             String replacedMessageContent = chatText.replace("[item]", itemText.getString()).replace("[i]", itemText.getString());
 
-            // Return the modified message to the event handler
-            return replacedMessageContent;
+           return replacedMessageContent;
         }
-        return chatText; // Return the original if no modification
+        return chatText;
     }
 
     // Function to handle [armor] or [a] placeholders
@@ -66,5 +62,29 @@ public class ItemDisplayHandler {
         }
 
         return chatText; // Return original message if no armor is present
+    }
+
+    public static String handleOffhandDisplay(String chatText, ServerPlayerEntity player) {
+        ItemStack heldItem = player.getStackInHand(Hand.OFF_HAND);
+
+        if (!heldItem.isEmpty()) {
+            Text itemText = heldItem.getName();
+            HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(heldItem));
+
+            itemText = itemText.copy().styled(style -> style.withHoverEvent(hoverEvent));
+
+            if (heldItem.getCount() > 1) {
+                itemText = Text.literal("§d" + heldItem.getName().getString() + " x" + heldItem.getCount() + "§f")
+                        .styled(style -> style.withHoverEvent(hoverEvent));
+            } else {
+                itemText = Text.literal("§d" + heldItem.getName().getString() + "§f")
+                        .styled(style -> style.withHoverEvent(hoverEvent));
+            }
+
+            String replacedMessageContent = chatText.replace("[item]", itemText.getString()).replace("[i]", itemText.getString());
+
+            return replacedMessageContent;
+        }
+        return chatText;
     }
 }
