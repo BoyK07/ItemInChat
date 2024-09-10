@@ -86,7 +86,7 @@ public class ItemDisplayHandler {
     public static String handleEnderchestDisplay(String chatText, ServerPlayerEntity player) {
         EnderChestInventory enderChest = player.getEnderChestInventory();
 
-        StringBuilder enderChestText = new StringBuilder();
+        StringBuilder enderChestItems = new StringBuilder();
         boolean hasItems = false;
 
         for (int i = 0; i < enderChest.size(); i++) {
@@ -94,17 +94,20 @@ public class ItemDisplayHandler {
             if (!itemStack.isEmpty()) {
                 hasItems = true;
                 Text itemName = itemStack.getName();
-                HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(itemStack));
 
-                Text itemDisplay = Text.literal("§b" + itemName.getString() + " x" + itemStack.getCount() + "§f")
-                        .styled(style -> style.withHoverEvent(hoverEvent));
-
-                enderChestText.append(itemDisplay.getString()).append(" ");
+                enderChestItems.append(itemName.getString())
+                        .append(" x")
+                        .append(itemStack.getCount())
+                        .append("\n");
             }
         }
 
         if (hasItems) {
-            return chatText.replace("[enderchest]", enderChestText.toString().trim()).replace("[ec]", enderChestText.toString().trim());
+            Text enderChestText = Text.literal("§dEnderchest§f").styled(style ->
+                    style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(enderChestItems.toString())))
+            );
+
+            return chatText.replace("[enderchest]", enderChestText.getString()).replace("[ec]", enderChestText.getString());
         }
 
         return chatText;
