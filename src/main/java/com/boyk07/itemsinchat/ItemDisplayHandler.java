@@ -49,8 +49,10 @@ public class ItemDisplayHandler {
                         .styled(style -> style.withHoverEvent(hoverEvent));
 
                 // check if i is not the last i
-                if (i != armorItems.length - 1) {
+                if (i != 0) {
                     armorText.append(armorDisplay.getString()).append(", ");
+                } else {
+                    armorText.append(armorDisplay.getString()).append(" ");
                 }
             }
         }
@@ -78,7 +80,7 @@ public class ItemDisplayHandler {
                         .styled(style -> style.withHoverEvent(hoverEvent));
             }
 
-            String replacedMessageContent = chatText.replace("[item]", itemText.getString()).replace("[i]", itemText.getString());
+            String replacedMessageContent = chatText.replace("[offhand]", itemText.getString()).replace("[o]", itemText.getString());
 
             return replacedMessageContent;
         }
