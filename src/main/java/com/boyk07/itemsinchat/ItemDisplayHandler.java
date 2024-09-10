@@ -48,7 +48,10 @@ public class ItemDisplayHandler {
                 Text armorDisplay = Text.literal("§d" + armorName.getString() + "§f")
                         .styled(style -> style.withHoverEvent(hoverEvent));
 
-                armorText.append(armorDisplay.getString()).append(" ");
+                // check if i is not the last i
+                if (i != armorItems.length - 1) {
+                    armorText.append(armorDisplay.getString()).append(", ");
+                }
             }
         }
 
