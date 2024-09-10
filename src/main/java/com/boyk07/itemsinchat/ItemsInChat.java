@@ -12,7 +12,7 @@ public class ItemsInChat implements ModInitializer {
 
     // Handles the message modification
     public static String handleChatMessage(String chatMessage, ServerPlayerEntity sender) {
-        if (chatText.contains("[item]") || chatText.contains("[i]")) {
+        if (chatMessage.contains("[item]") || chatMessage.contains("[i]")) {
             return ItemDisplayHandler.handleItemDisplay(chatMessage, sender);
         }
     }
