@@ -15,6 +15,7 @@ public class ItemsInChat implements ModInitializer {
         // Process the message for item and armor placeholders
         chatMessage = ItemDisplayHandler.handleItemDisplay(chatMessage, sender);  // Replace [item] or [i]
         chatMessage = ItemDisplayHandler.handleArmorDisplay(chatMessage, sender); // Replace [armor] or [a]
+        chatMessage = ItemDisplayHandler.handleOffhandDisplay(chatMessage, sender); // Replace [offhand] or [o]
 
         // Return the modified message with all placeholders replaced
         return chatMessage;
