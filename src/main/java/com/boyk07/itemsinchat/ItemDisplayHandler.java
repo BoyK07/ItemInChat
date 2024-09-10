@@ -1,5 +1,6 @@
 package com.boyk07.itemsinchat;
 
+import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Text;
@@ -7,8 +8,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
 
 public class ItemDisplayHandler {
-
-    // Function to handle [item] or [i] placeholders
     public static String handleItemDisplay(String chatText, ServerPlayerEntity player) {
         ItemStack heldItem = player.getStackInHand(Hand.MAIN_HAND);
 
@@ -33,14 +32,12 @@ public class ItemDisplayHandler {
         return chatText;
     }
 
-    // Function to handle [armor] or [a] placeholders
     public static String handleArmorDisplay(String chatText, ServerPlayerEntity player) {
         ItemStack[] armorItems = player.getInventory().armor.toArray(new ItemStack[0]);
 
         StringBuilder armorText = new StringBuilder();
         boolean hasArmor = false;
 
-        // Loop through armor slots (0: boots, 1: leggings, 2: chestplate, 3: helmet)
         for (int i = armorItems.length - 1; i >= 0; i--) {
             ItemStack armorPiece = armorItems[i];
             if (!armorPiece.isEmpty()) {
@@ -51,17 +48,14 @@ public class ItemDisplayHandler {
                 Text armorDisplay = Text.literal("§d" + armorName.getString() + "§f")
                         .styled(style -> style.withHoverEvent(hoverEvent));
 
-                // Append each armor piece in the order Helmet -> Chestplate -> Leggings -> Boots
                 armorText.append(armorDisplay.getString()).append(" ");
             }
         }
 
         if (hasArmor) {
-            // Replace [armor] or [a] in the message
             return chatText.replace("[armor]", armorText.toString().trim()).replace("[a]", armorText.toString().trim());
         }
-
-        return chatText; // Return original message if no armor is present
+        return chatText;
     }
 
     public static String handleOffhandDisplay(String chatText, ServerPlayerEntity player) {
@@ -85,6 +79,34 @@ public class ItemDisplayHandler {
 
             return replacedMessageContent;
         }
+
+        return chatText;
+    }
+
+    public static String handleEnderchestDisplay(String chatText, ServerPlayerEntity player) {
+        EnderChestInventory enderChest = player.getEnderChestInventory();
+
+        StringBuilder enderChestText = new StringBuilder();
+        boolean hasItems = false;
+
+        for (int i = 0; i < enderChest.size(); i++) {
+            ItemStack itemStack = enderChest.getStack(i);
+            if (!itemStack.isEmpty()) {
+                hasItems = true;
+                Text itemName = itemStack.getName();
+                HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(itemStack));
+
+                Text itemDisplay = Text.literal("§b" + itemName.getString() + " x" + itemStack.getCount() + "§f")
+                        .styled(style -> style.withHoverEvent(hoverEvent));
+
+                enderChestText.append(itemDisplay.getString()).append(" ");
+            }
+        }
+
+        if (hasItems) {
+            return chatText.replace("[enderchest]", enderChestText.toString().trim()).replace("[ec]", enderChestText.toString().trim());
+        }
+
         return chatText;
     }
 }
