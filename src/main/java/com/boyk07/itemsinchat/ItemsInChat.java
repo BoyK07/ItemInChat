@@ -12,13 +12,11 @@ public class ItemsInChat implements ModInitializer {
 
     // Handles the message modification
     public static String handleChatMessage(String chatMessage, ServerPlayerEntity sender) {
-        // Check if the message contains [item] or [i]
-        if (
-                chatMessage.contains("[item]") || chatMessage.contains("[i]")
-                || chatMessage.contains("[armor]") || chatmessage.contains("[a]")
-        ) {
-            return ItemDisplayHandler.handleItemDisplay(chatMessage, sender);
-        }
-        return chatMessage; // Always return the original message if no modification is made
+        // Process the message for item and armor placeholders
+        chatMessage = ItemDisplayHandler.handleItemDisplay(chatMessage, sender);  // Replace [item] or [i]
+        chatMessage = ItemDisplayHandler.handleArmorDisplay(chatMessage, sender); // Replace [armor] or [a]
+
+        // Return the modified message with all placeholders replaced
+        return chatMessage;
     }
 }

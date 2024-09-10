@@ -8,8 +8,9 @@ import net.minecraft.util.Hand;
 
 public class ItemDisplayHandler {
 
-	public static String handleItemDisplay(String chatText, ServerPlayerEntity player) {
-		// Check if the message contains [item] or [i]
+    // Function to handle [item] or [i] placeholders
+    public static String handleItemDisplay(String chatText, ServerPlayerEntity player) {
+        // Check if the message contains [item] or [i]
         ItemStack heldItem = player.getStackInHand(Hand.MAIN_HAND);
 
         if (!heldItem.isEmpty()) {
@@ -21,10 +22,10 @@ public class ItemDisplayHandler {
             // Handle stack size
             if (heldItem.getCount() > 1) {
                 itemText = Text.literal("§d" + heldItem.getName().getString() + " x" + heldItem.getCount() + "§f")
-                    .styled(style -> style.withHoverEvent(hoverEvent));
+                        .styled(style -> style.withHoverEvent(hoverEvent));
             } else {
                 itemText = Text.literal("§d" + heldItem.getName().getString() + " x1" + "§f")
-                    .styled(style -> style.withHoverEvent(hoverEvent));
+                        .styled(style -> style.withHoverEvent(hoverEvent));
             }
 
             // Replace [item] or [i] in the message with the hoverable item text
@@ -33,6 +34,37 @@ public class ItemDisplayHandler {
             // Return the modified message to the event handler
             return replacedMessageContent;
         }
-		return chatText; // Return the original if no modification
-	}
+        return chatText; // Return the original if no modification
+    }
+
+    // Function to handle [armor] or [a] placeholders
+    public static String handleArmorDisplay(String chatText, ServerPlayerEntity player) {
+        ItemStack[] armorItems = player.getInventory().armor.toArray(new ItemStack[0]);
+
+        StringBuilder armorText = new StringBuilder();
+        boolean hasArmor = false;
+
+        // Loop through armor slots (0: boots, 1: leggings, 2: chestplate, 3: helmet)
+        for (int i = armorItems.length - 1; i >= 0; i--) {
+            ItemStack armorPiece = armorItems[i];
+            if (!armorPiece.isEmpty()) {
+                hasArmor = true;
+                Text armorName = armorPiece.getName();
+                HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(armorPiece));
+
+                Text armorDisplay = Text.literal("§d" + armorName.getString() + "§f")
+                        .styled(style -> style.withHoverEvent(hoverEvent));
+
+                // Append each armor piece in the order Helmet -> Chestplate -> Leggings -> Boots
+                armorText.append(armorDisplay.getString()).append(" ");
+            }
+        }
+
+        if (hasArmor) {
+            // Replace [armor] or [a] in the message
+            return chatText.replace("[armor]", armorText.toString().trim()).replace("[a]", armorText.toString().trim());
+        }
+
+        return chatText; // Return original message if no armor is present
+    }
 }
