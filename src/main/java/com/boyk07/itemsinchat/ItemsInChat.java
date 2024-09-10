@@ -12,6 +12,8 @@ public class ItemsInChat implements ModInitializer {
 
     // Handles the message modification
     public static String handleChatMessage(String chatMessage, ServerPlayerEntity sender) {
-        return ItemDisplayHandler.handleItemDisplay(chatMessage, sender);
+        if (chatText.contains("[item]") || chatText.contains("[i]")) {
+            return ItemDisplayHandler.handleItemDisplay(chatMessage, sender);
+        }
     }
 }
