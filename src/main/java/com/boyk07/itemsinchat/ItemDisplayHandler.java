@@ -1,7 +1,5 @@
 package com.boyk07.itemsinchat;
 
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
@@ -15,10 +13,8 @@ public class ItemDisplayHandler {
         ItemStack heldItem = player.getStackInHand(Hand.MAIN_HAND);
 
         if (!heldItem.isEmpty()) {
-            // Create hover event for the item in the main hand
             HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(heldItem));
 
-            // Create the formatted item text with the hover event
             MutableText itemText;
             if (heldItem.getCount() > 1) {
                 itemText = Text.literal("§d" + heldItem.getName().getString() + " x" + heldItem.getCount() + "§f")
@@ -28,19 +24,16 @@ public class ItemDisplayHandler {
                         .styled(style -> style.withHoverEvent(hoverEvent));
             }
 
-            // Replace both [item] and [i] in the message with the itemText
-            String[] splitText = chatText.split("\\[item\\]|\\[i\\]"); // Supports both [item] and [i]
-            MutableText finalMessage = Text.literal(splitText[0]); // Start with the first part of the message
+            String[] splitText = chatText.split("\\[item\\]|\\[i\\]");
+            MutableText finalMessage = Text.literal(splitText[0]);
 
-            // Add the item text and then the rest of the split text
             for (int i = 1; i < splitText.length; i++) {
                 finalMessage = finalMessage.append(itemText).append(splitText[i]);
             }
 
-            return finalMessage; // Return the final MutableText message with hoverable item
+            return finalMessage;
         }
 
-        // If no item is held, return the original chatText as a MutableText
         return Text.literal(chatText);
     }
 
@@ -60,7 +53,6 @@ public class ItemDisplayHandler {
                 MutableText armorDisplay = Text.literal("§d" + armorName.getString() + "§f")
                         .styled(style -> style.withHoverEvent(hoverEvent));
 
-                // Add commas between armor pieces
                 if (i != 0) {
                     armorText = armorText.append(armorDisplay).append(", ");
                 } else {
@@ -70,7 +62,6 @@ public class ItemDisplayHandler {
         }
 
         if (hasArmor) {
-            // Split and rebuild the chat text
             String[] splitText = chatText.split("\\[armor\\]|\\[a\\]");
             MutableText finalMessage = Text.literal(splitText[0]);
 
@@ -99,7 +90,6 @@ public class ItemDisplayHandler {
                         .styled(style -> style.withHoverEvent(hoverEvent));
             }
 
-            // Split and rebuild the chat text
             String[] splitText = chatText.split("\\[offhand\\]|\\[o\\]");
             MutableText finalMessage = Text.literal(splitText[0]);
 
@@ -129,6 +119,27 @@ public class ItemDisplayHandler {
 
         for (int i = 1; i < splitText.length; i++) {
             finalMessage = finalMessage.append(enderChestText).append(splitText[i]);
+        }
+
+        return finalMessage;
+    }
+
+    public static MutableText handleInventoryDisplay(String chatText, ServerPlayerEntity player) {
+        String clickId = CommandHandler.generateInventoryClickId(player);
+
+        MutableText inventoryText = Text.literal("§d[Inventory]§f").styled(style ->
+                style.withHoverEvent(
+                        new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click to open " + player.getDisplayName().getString() + "'s inventory"))
+                ).withClickEvent(
+                        new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/openinventory " + clickId)
+                )
+        );
+
+        String[] splitText = chatText.split("\\[inventory\\]|\\[inv\\]");
+        MutableText finalMessage = Text.literal(splitText[0]);
+
+        for (int i = 1; i < splitText.length; i++) {
+            finalMessage = finalMessage.append(inventoryText).append(splitText[i]);
         }
 
         return finalMessage;
