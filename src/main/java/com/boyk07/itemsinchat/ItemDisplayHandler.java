@@ -2,6 +2,7 @@ package com.boyk07.itemsinchat;
 
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -117,6 +118,7 @@ public class ItemDisplayHandler {
         StringBuilder enderChestItems = new StringBuilder();
         boolean hasItems = false;
 
+        // Build a string containing the Ender Chest's contents
         for (int i = 0; i < enderChest.size(); i++) {
             ItemStack itemStack = enderChest.getStack(i);
             if (!itemStack.isEmpty()) {
@@ -129,8 +131,16 @@ public class ItemDisplayHandler {
         }
 
         if (hasItems) {
-            MutableText enderChestText = Text.literal("§dEnderchest§f").styled(style ->
-                    style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(enderChestItems.toString())))
+            // Generate a unique click ID
+            String clickId = CommandHandler.generateEnderchestClickId(player);
+
+            // Create the clickable [Enderchest] text with hover and click events
+            MutableText enderChestText = Text.literal("§d[Enderchest]§f").styled(style ->
+                    style.withHoverEvent(
+                            new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(enderChestItems.toString()))
+                    ).withClickEvent(
+                            new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/openenderchest " + clickId)
+                    )
             );
 
             // Split and rebuild the chat text
