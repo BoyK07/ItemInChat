@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.screen.GenericContainerScreenHandler;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -15,29 +16,62 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class CommandHandler {
-
-    // HashMap to store valid click IDs for Ender Chest openings
     private static final HashMap<String, UUID> validEnderchestClicks = new HashMap<>();
+    private static final HashMap<String, UUID> validInventoryClicks = new HashMap<>();
 
-    // Method to register all commands in this file
     public static void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
         registerOpenEnderchestCommand(dispatcher);
+        registerOpenInventoryCommand(dispatcher);
     }
 
-    // OpenEnderchest command: Only callable via chat click with a valid UUID
+    private static void registerOpenInventoryCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
+        dispatcher.register(CommandManager.literal("openinventory")
+                .then(CommandManager.argument("clickId", StringArgumentType.string())
+                        .executes(context -> {
+                            String clickId = StringArgumentType.getString(context, "clickId");
+
+                            if (validInventoryClicks.containsKey(clickId)) {
+                                UUID playerUUID = validInventoryClicks.get(clickId);
+                                ServerPlayerEntity player = context.getSource().getServer().getPlayerManager().getPlayer(playerUUID);
+
+                                if (player != null) {
+                                    player.openHandledScreen(new NamedScreenHandlerFactory() {
+                                        @Override
+                                        public Text getDisplayName() {
+                                            return Text.literal("Player Inventory");
+                                        }
+
+                                        @Override
+                                        public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+                                            return new CustomPlayerInventoryScreenHandler(syncId, playerInventory);
+                                        }
+                                    });
+
+                                    validInventoryClicks.remove(clickId);
+
+                                    return 1;
+                                } else {
+                                    context.getSource().sendError(Text.literal("Player not found"));
+                                    return 0;
+                                }
+                            } else {
+                                context.getSource().sendError(Text.literal("Invalid Inventory opening"));
+                                return 0;
+                            }
+                        })));
+    }
+
     private static void registerOpenEnderchestCommand(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("openenderchest")
                 .then(CommandManager.argument("clickId", StringArgumentType.string())
                         .executes(context -> {
                             String clickId = StringArgumentType.getString(context, "clickId");
 
-                            // Check if the click ID is valid
                             if (validEnderchestClicks.containsKey(clickId)) {
                                 UUID playerUUID = validEnderchestClicks.get(clickId);
                                 ServerPlayerEntity player = context.getSource().getServer().getPlayerManager().getPlayer(playerUUID);
 
                                 if (player != null) {
-                                    // Open the player's Ender Chest using a NamedScreenHandlerFactory
                                     player.openHandledScreen(new NamedScreenHandlerFactory() {
                                         @Override
                                         public Text getDisplayName() {
@@ -45,13 +79,11 @@ public class CommandHandler {
                                         }
 
                                         @Override
-                                        public GenericContainerScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-                                            // Create the Ender Chest screen handler
+                                        public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity playerEntity) {
                                             return GenericContainerScreenHandler.createGeneric9x3(syncId, playerInventory, player.getEnderChestInventory());
                                         }
                                     });
 
-                                    // Remove the used clickId from the map
                                     validEnderchestClicks.remove(clickId);
 
                                     return 1;
@@ -66,7 +98,12 @@ public class CommandHandler {
                         })));
     }
 
-    // Method to generate a valid click ID for the player's Ender Chest
+    public static String generateInventoryClickId(ServerPlayerEntity player) {
+        String clickId = UUID.randomUUID().toString();
+        validInventoryClicks.put(clickId, player.getUuid());
+        return clickId;
+    }
+
     public static String generateEnderchestClickId(ServerPlayerEntity player) {
         String clickId = UUID.randomUUID().toString();
         validEnderchestClicks.put(clickId, player.getUuid());
