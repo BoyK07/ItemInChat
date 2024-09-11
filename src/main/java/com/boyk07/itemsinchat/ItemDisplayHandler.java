@@ -3,20 +3,21 @@ package com.boyk07.itemsinchat;
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
 
 public class ItemDisplayHandler {
-    public static String handleItemDisplay(String chatText, ServerPlayerEntity player) {
+    public static MutableText handleItemDisplay(String chatText, ServerPlayerEntity player) {
         ItemStack heldItem = player.getStackInHand(Hand.MAIN_HAND);
 
         if (!heldItem.isEmpty()) {
-            Text itemText = heldItem.getName();
+            // Create hover event for the item in the main hand
             HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(heldItem));
 
-            itemText = itemText.copy().styled(style -> style.withHoverEvent(hoverEvent));
-
+            // Create the formatted item text with the hover event
+            MutableText itemText;
             if (heldItem.getCount() > 1) {
                 itemText = Text.literal("§d" + heldItem.getName().getString() + " x" + heldItem.getCount() + "§f")
                         .styled(style -> style.withHoverEvent(hoverEvent));
@@ -25,17 +26,26 @@ public class ItemDisplayHandler {
                         .styled(style -> style.withHoverEvent(hoverEvent));
             }
 
-            String replacedMessageContent = chatText.replace("[item]", itemText.getString()).replace("[i]", itemText.getString());
+            // Replace both [item] and [i] in the message with the itemText
+            String[] splitText = chatText.split("\\[item\\]|\\[i\\]"); // Supports both [item] and [i]
+            MutableText finalMessage = Text.literal(splitText[0]); // Start with the first part of the message
 
-           return replacedMessageContent;
+            // Add the item text and then the rest of the split text
+            for (int i = 1; i < splitText.length; i++) {
+                finalMessage = finalMessage.append(itemText).append(splitText[i]);
+            }
+
+            return finalMessage; // Return the final MutableText message with hoverable item
         }
-        return chatText;
+
+        // If no item is held, return the original chatText as a MutableText
+        return Text.literal(chatText);
     }
 
-    public static String handleArmorDisplay(String chatText, ServerPlayerEntity player) {
+    public static MutableText handleArmorDisplay(String chatText, ServerPlayerEntity player) {
         ItemStack[] armorItems = player.getInventory().armor.toArray(new ItemStack[0]);
 
-        StringBuilder armorText = new StringBuilder();
+        MutableText armorText = Text.literal("");
         boolean hasArmor = false;
 
         for (int i = armorItems.length - 1; i >= 0; i--) {
@@ -45,33 +55,40 @@ public class ItemDisplayHandler {
                 Text armorName = armorPiece.getName();
                 HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(armorPiece));
 
-                Text armorDisplay = Text.literal("§d" + armorName.getString() + "§f")
+                MutableText armorDisplay = Text.literal("§d" + armorName.getString() + "§f")
                         .styled(style -> style.withHoverEvent(hoverEvent));
 
-                // check if i is not the last i
+                // Add commas between armor pieces
                 if (i != 0) {
-                    armorText.append(armorDisplay.getString()).append(", ");
+                    armorText = armorText.append(armorDisplay).append(", ");
                 } else {
-                    armorText.append(armorDisplay.getString()).append(" ");
+                    armorText = armorText.append(armorDisplay).append(" ");
                 }
             }
         }
 
         if (hasArmor) {
-            return chatText.replace("[armor]", armorText.toString().trim()).replace("[a]", armorText.toString().trim());
+            // Split and rebuild the chat text
+            String[] splitText = chatText.split("\\[armor\\]|\\[a\\]");
+            MutableText finalMessage = Text.literal(splitText[0]);
+
+            for (int i = 1; i < splitText.length; i++) {
+                finalMessage = finalMessage.append(armorText).append(splitText[i]);
+            }
+
+            return finalMessage;
         }
-        return chatText;
+
+        return Text.literal(chatText);
     }
 
-    public static String handleOffhandDisplay(String chatText, ServerPlayerEntity player) {
+    public static MutableText handleOffhandDisplay(String chatText, ServerPlayerEntity player) {
         ItemStack heldItem = player.getStackInHand(Hand.OFF_HAND);
 
         if (!heldItem.isEmpty()) {
-            Text itemText = heldItem.getName();
             HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackContent(heldItem));
 
-            itemText = itemText.copy().styled(style -> style.withHoverEvent(hoverEvent));
-
+            MutableText itemText;
             if (heldItem.getCount() > 1) {
                 itemText = Text.literal("§d" + heldItem.getName().getString() + " x" + heldItem.getCount() + "§f")
                         .styled(style -> style.withHoverEvent(hoverEvent));
@@ -80,15 +97,21 @@ public class ItemDisplayHandler {
                         .styled(style -> style.withHoverEvent(hoverEvent));
             }
 
-            String replacedMessageContent = chatText.replace("[offhand]", itemText.getString()).replace("[o]", itemText.getString());
+            // Split and rebuild the chat text
+            String[] splitText = chatText.split("\\[offhand\\]|\\[o\\]");
+            MutableText finalMessage = Text.literal(splitText[0]);
 
-            return replacedMessageContent;
+            for (int i = 1; i < splitText.length; i++) {
+                finalMessage = finalMessage.append(itemText).append(splitText[i]);
+            }
+
+            return finalMessage;
         }
 
-        return chatText;
+        return Text.literal(chatText);
     }
 
-    public static String handleEnderchestDisplay(String chatText, ServerPlayerEntity player) {
+    public static MutableText handleEnderchestDisplay(String chatText, ServerPlayerEntity player) {
         EnderChestInventory enderChest = player.getEnderChestInventory();
 
         StringBuilder enderChestItems = new StringBuilder();
@@ -98,9 +121,7 @@ public class ItemDisplayHandler {
             ItemStack itemStack = enderChest.getStack(i);
             if (!itemStack.isEmpty()) {
                 hasItems = true;
-                Text itemName = itemStack.getName();
-
-                enderChestItems.append(itemName.getString())
+                enderChestItems.append(itemStack.getName().getString())
                         .append(" x")
                         .append(itemStack.getCount())
                         .append("\n");
@@ -108,13 +129,21 @@ public class ItemDisplayHandler {
         }
 
         if (hasItems) {
-            Text enderChestText = Text.literal("§dEnderchest§f").styled(style ->
+            MutableText enderChestText = Text.literal("§dEnderchest§f").styled(style ->
                     style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(enderChestItems.toString())))
             );
 
-            return chatText.replace("[enderchest]", enderChestText.getString()).replace("[ec]", enderChestText.getString());
+            // Split and rebuild the chat text
+            String[] splitText = chatText.split("\\[enderchest\\]|\\[ec\\]");
+            MutableText finalMessage = Text.literal(splitText[0]);
+
+            for (int i = 1; i < splitText.length; i++) {
+                finalMessage = finalMessage.append(enderChestText).append(splitText[i]);
+            }
+
+            return finalMessage;
         }
 
-        return chatText;
+        return Text.literal(chatText);
     }
 }
