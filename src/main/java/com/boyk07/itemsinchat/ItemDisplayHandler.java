@@ -1,5 +1,6 @@
 package com.boyk07.itemsinchat;
 
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
@@ -113,47 +114,23 @@ public class ItemDisplayHandler {
     }
 
     public static MutableText handleEnderchestDisplay(String chatText, ServerPlayerEntity player) {
-        EnderChestInventory enderChest = player.getEnderChestInventory();
+        String clickId = CommandHandler.generateEnderchestClickId(player);
 
-        StringBuilder enderChestItems = new StringBuilder();
-        boolean hasItems = false;
+        MutableText enderChestText = Text.literal("§d[Enderchest]§f").styled(style ->
+                style.withHoverEvent(
+                        new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click to open " + player.getDisplayName().getString() + "'s Enderchest"))
+                ).withClickEvent(
+                        new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/openenderchest " + clickId)
+                )
+        );
 
-        // Build a string containing the Ender Chest's contents
-        for (int i = 0; i < enderChest.size(); i++) {
-            ItemStack itemStack = enderChest.getStack(i);
-            if (!itemStack.isEmpty()) {
-                hasItems = true;
-                enderChestItems.append(itemStack.getName().getString())
-                        .append(" x")
-                        .append(itemStack.getCount())
-                        .append("\n");
-            }
+        String[] splitText = chatText.split("\\[enderchest\\]|\\[ec\\]");
+        MutableText finalMessage = Text.literal(splitText[0]);
+
+        for (int i = 1; i < splitText.length; i++) {
+            finalMessage = finalMessage.append(enderChestText).append(splitText[i]);
         }
 
-        if (hasItems) {
-            // Generate a unique click ID
-            String clickId = CommandHandler.generateEnderchestClickId(player);
-
-            // Create the clickable [Enderchest] text with hover and click events
-            MutableText enderChestText = Text.literal("§d[Enderchest]§f").styled(style ->
-                    style.withHoverEvent(
-                            new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(enderChestItems.toString()))
-                    ).withClickEvent(
-                            new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/openenderchest " + clickId)
-                    )
-            );
-
-            // Split and rebuild the chat text
-            String[] splitText = chatText.split("\\[enderchest\\]|\\[ec\\]");
-            MutableText finalMessage = Text.literal(splitText[0]);
-
-            for (int i = 1; i < splitText.length; i++) {
-                finalMessage = finalMessage.append(enderChestText).append(splitText[i]);
-            }
-
-            return finalMessage;
-        }
-
-        return Text.literal(chatText);
+        return finalMessage;
     }
 }
