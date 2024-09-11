@@ -1,6 +1,7 @@
 package com.boyk07.itemsinchat;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -10,6 +11,11 @@ public class ItemsInChat implements ModInitializer {
     public void onInitialize() {
         // Register the server-side chat listener
         ChatListener.registerChatListener();
+
+        // Register some needed commands
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            CommandHandler.registerCommands(dispatcher);
+        });
     }
 
     public static MutableText handleChatMessage(String chatMessage, ServerPlayerEntity sender) {
