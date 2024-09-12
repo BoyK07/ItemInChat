@@ -8,6 +8,9 @@ import net.minecraft.text.Text;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class ItemDisplayHandler {
     public static MutableText handleItemDisplay(String chatText, ServerPlayerEntity player) {
         ItemStack heldItem = player.getStackInHand(Hand.MAIN_HAND);
@@ -24,13 +27,19 @@ public class ItemDisplayHandler {
                         .styled(style -> style.withHoverEvent(hoverEvent));
             }
 
-            String[] splitText = chatText.split("\\[item\\]|\\[i\\]");
-            MutableText finalMessage = Text.literal(splitText[0]);
+            MutableText finalMessage = Text.literal("");
+            int start = 0;
+            int index;
 
-            for (int i = 1; i < splitText.length; i++) {
-                finalMessage = finalMessage.append(itemText).append(splitText[i]);
+            Pattern pattern = Pattern.compile("\\[item\\]|\\[i\\]");
+            Matcher matcher = pattern.matcher(chatText);
+            while (matcher.find()) {
+                finalMessage = finalMessage.append(chatText.substring(start, matcher.start()));
+                finalMessage = finalMessage.append(itemText);
+                start = matcher.end();
             }
 
+            finalMessage = finalMessage.append(chatText.substring(start));
             return finalMessage;
         }
 
