@@ -29,18 +29,9 @@ public class ItemDisplayHandler {
 
             MutableText finalMessage = Text.literal("");
             int start = 0;
-            int index;
 
             Pattern pattern = Pattern.compile("\\[item\\]|\\[i\\]");
-            Matcher matcher = pattern.matcher(chatText);
-            while (matcher.find()) {
-                finalMessage = finalMessage.append(chatText.substring(start, matcher.start()));
-                finalMessage = finalMessage.append(itemText);
-                start = matcher.end();
-            }
-
-            finalMessage = finalMessage.append(chatText.substring(start));
-            return finalMessage;
+            return getMutableText(chatText, itemText, finalMessage, start, pattern);
         }
 
         return Text.literal(chatText);
@@ -71,14 +62,11 @@ public class ItemDisplayHandler {
         }
 
         if (hasArmor) {
-            String[] splitText = chatText.split("\\[armor\\]|\\[a\\]");
-            MutableText finalMessage = Text.literal(splitText[0]);
+            MutableText finalMessage = Text.literal("");
+            int start = 0;
 
-            for (int i = 1; i < splitText.length; i++) {
-                finalMessage = finalMessage.append(armorText).append(splitText[i]);
-            }
-
-            return finalMessage;
+            Pattern pattern = Pattern.compile("\\[armor\\]|\\[a\\]");
+            return getMutableText(chatText, armorText, finalMessage, start, pattern);
         }
 
         return Text.literal(chatText);
@@ -99,14 +87,11 @@ public class ItemDisplayHandler {
                         .styled(style -> style.withHoverEvent(hoverEvent));
             }
 
-            String[] splitText = chatText.split("\\[offhand\\]|\\[o\\]");
-            MutableText finalMessage = Text.literal(splitText[0]);
+            MutableText finalMessage = Text.literal("");
+            int start = 0;
 
-            for (int i = 1; i < splitText.length; i++) {
-                finalMessage = finalMessage.append(itemText).append(splitText[i]);
-            }
-
-            return finalMessage;
+            Pattern pattern = Pattern.compile("\\[offhand\\]|\\[o\\]");
+            return getMutableText(chatText, itemText, finalMessage, start, pattern);
         }
 
         return Text.literal(chatText);
@@ -123,14 +108,11 @@ public class ItemDisplayHandler {
                 )
         );
 
-        String[] splitText = chatText.split("\\[enderchest\\]|\\[ec\\]");
-        MutableText finalMessage = Text.literal(splitText[0]);
+        MutableText finalMessage = Text.literal("");
+        int start = 0;
 
-        for (int i = 1; i < splitText.length; i++) {
-            finalMessage = finalMessage.append(enderChestText).append(splitText[i]);
-        }
-
-        return finalMessage;
+        Pattern pattern = Pattern.compile("\\[enderchest\\]|\\[ec\\]");
+        return getMutableText(chatText, enderChestText, finalMessage, start, pattern);
     }
 
     public static MutableText handleInventoryDisplay(String chatText, ServerPlayerEntity player) {
@@ -144,13 +126,22 @@ public class ItemDisplayHandler {
                 )
         );
 
-        String[] splitText = chatText.split("\\[inventory\\]|\\[inv\\]");
-        MutableText finalMessage = Text.literal(splitText[0]);
+        MutableText finalMessage = Text.literal("");
+        int start = 0;
 
-        for (int i = 1; i < splitText.length; i++) {
-            finalMessage = finalMessage.append(inventoryText).append(splitText[i]);
+        Pattern pattern = Pattern.compile("\\[inventory\\]|\\[inv\\]");
+        return getMutableText(chatText, inventoryText, finalMessage, start, pattern);
+    }
+
+    private static MutableText getMutableText(String chatText, MutableText inventoryText, MutableText finalMessage, int start, Pattern pattern) {
+        Matcher matcher = pattern.matcher(chatText);
+        while (matcher.find()) {
+            finalMessage = finalMessage.append(chatText.substring(start, matcher.start()));
+            finalMessage = finalMessage.append(inventoryText);
+            start = matcher.end();
         }
 
+        finalMessage = finalMessage.append(chatText.substring(start));
         return finalMessage;
     }
 }
